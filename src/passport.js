@@ -35,7 +35,10 @@ passport.use(
   passport.use(
     "login",
     new LocalStrategy(
-      { usernameField: "email" },
+      { clientID:process.env.GITHUB_CLIENT_ID,
+      clientSecret:process.env.GITHUB_CLIENT_SECRET,
+      scope:['user:email'],
+      callbackURL:process.env.GITHUB_CALLBACK_URL},
       async (email, password, done) => {
         if (!email || !password) {
           done(null, false);
