@@ -58,50 +58,56 @@ passport.use(
     )
   );
   
-  // github
+
   passport.use(
     new GithubStrategy(
       {
         clientID: "Iv1.95547a8d5e7ca361",
         clientSecret: "88a80637856a1083bffcebea11490c213cbf5690",
         callbackURL: "http://localhost:8080/api/sessions/callback",
-        scope:["user:email"]
+        scope: ["user:email"]
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
 
-        //analizando variables que trae del profile....
-        console.log('profile',profile)
-
-          const userDB = await usersManager.findByEmail(profile.emails[0].value);
-          // login
-      
-
+          // Verificar si existen emails en el perfil de GitHub
+          
+          const email = (profile.emails && profile.emails.length > 0) ? profile.emails[0].value : null;
+        
+          if (!email) {
+            return done(null, false, { message: 'No se proporcionó un correo electrónico.' });
+          }
+  
+          const userDB = await usersManager.findByEmail(email);
+       
           if (userDB) {
             if (userDB.isGithub) {
+    
               return done(null, userDB);
             } else {
-              return done(null, false);
+              return done(null, false, { message: 'La cuenta ya existe pero no se registró a través de GitHub.' });
             }
           }
-          // signup
+  
+
           const infoUser = {
-            first_name: profile.username, 
+            first_name: profile.username,
             last_name: profile.username,
-            email: profile.emails[0].value,
+            email: email,
             password: profile.id,
             isGithub: true,
           };
-
-          const createdUser = await usersManager.createOne(infoUser);
-          done(null, createdUser);
           
+          const createdUser = await usersManager.createOne(infoUser);
+          
+          return done(null, createdUser);
         } catch (error) {
-          done(error);
+          return done(error);
         }
       }
     )
   );
+  
   
   passport.serializeUser((user, done) => {
     // _id

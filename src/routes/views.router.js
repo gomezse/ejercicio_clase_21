@@ -33,10 +33,7 @@ router.get("/profile", async (req, res) => {
     const { payload } = products;
     const productsObject = payload.map(product => product.toObject());
 
-    console.log('passport', req.session.passport);
-    console.log('user', req.user);
-
-    res.render("profile", { products: productsObject, user: req.user });
+    res.render("profile", { products: productsObject, user: req.user.toObject() });
 });
 
 router.get("/restaurar", (req, res) => {
