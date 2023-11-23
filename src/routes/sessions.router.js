@@ -38,9 +38,11 @@ router.get(
   passport.authenticate("github", { scope: ["user:email"] })
 );
 
-router.get("/callback", passport.authenticate("github"), (req, res) => {
-  res.send("Probando");
-});
+router.get("/callback", passport.authenticate("github", {
+  successRedirect: "/profile", // Redirige al perfil si la autenticación es exitosa
+  failureRedirect: "/error" // Redirige a una página de error si la autenticación falla
+}));
+
 
 
 
