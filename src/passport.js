@@ -35,10 +35,7 @@ passport.use(
   passport.use(
     "login",
     new LocalStrategy(
-      { clientID:process.env.GITHUB_CLIENT_ID,
-      clientSecret:process.env.GITHUB_CLIENT_SECRET,
-      scope:['user:email'],
-      callbackURL:process.env.GITHUB_CALLBACK_URL},
+      { usernameField: "email" },
       async (email, password, done) => {
         if (!email || !password) {
           done(null, false);
@@ -63,20 +60,20 @@ passport.use(
   
   // github
   passport.use(
-    "github",
     new GithubStrategy(
       {
         clientID: "Iv1.95547a8d5e7ca361",
         clientSecret: "88a80637856a1083bffcebea11490c213cbf5690",
         callbackURL: "http://localhost:8080/api/sessions/callback",
+        scope:["user:email"]
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
 
         //analizando variables que trae del profile....
-        console.log('profile json',profile._json)
+        console.log('profile',profile)
 
-          const userDB = await usersManager.findByEmail(profile._json.email);
+          const userDB = await usersManager.findByEmail(profile.emails[0].value);
           // login
       
 
@@ -89,14 +86,16 @@ passport.use(
           }
           // signup
           const infoUser = {
-            first_name: profile._json.name.split(" ")[0], 
-            last_name: profile._json.name.split(" ")[1],
-            email: profile._json.email,
-            password: " ",
+            first_name: profile.username, 
+            last_name: profile.username,
+            email: profile.emails[0].value,
+            password: profile.id,
             isGithub: true,
           };
+
           const createdUser = await usersManager.createOne(infoUser);
           done(null, createdUser);
+          
         } catch (error) {
           done(error);
         }
